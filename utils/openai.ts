@@ -1,13 +1,17 @@
+// openai-client.ts
 import OpenAI from 'openai';
-import { ConfigService } from '@nestjs/config';
 
-let openaiInstance: OpenAI;
+let openaiInstance: OpenAI | null = null;
 
-export const getOpenAIClient = (configService: ConfigService): OpenAI => {
+export const getOpenAIClient = (): OpenAI => {
   if (!openaiInstance) {
-    openaiInstance = new OpenAI({
-      apiKey: configService.get<string>('OPENAI_API_KEY'),
-    });
+    const apiKey = process.env.OPENAI_API_KEY;
+    if (!apiKey) {
+      throw new Error('OPENAI_API_KEY is not defined in environment variables.');
+    }
+
+    openaiInstance = new OpenAI({ apiKey });
   }
+
   return openaiInstance;
 };
