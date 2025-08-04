@@ -1,24 +1,10 @@
 import { NestFactory } from '@nestjs/core';
-import { AppModule } from '../src/app.module';
-import { ExpressAdapter } from '@nestjs/platform-express';
-import * as express from 'express';
+import { AppModule } from './app.module';
 import * as cookieParser from 'cookie-parser';
-import { Request, Response } from 'express';
 
-const server = express();
-server.use(cookieParser());
-
-let isInitialized = false;
-
-async function createNestServer(expressInstance: express.Express) {
-  const app = await NestFactory.create(AppModule, new ExpressAdapter(expressInstance));
-  await app.init();
+async function bootstrap() {
+  const app = await NestFactory.create(AppModule);
+  app.use(cookieParser());
+  await app.listen(3000);
 }
-
-export default async function handler(req: Request, res: Response) {
-  if (!isInitialized) {
-    await createNestServer(server);
-    isInitialized = true;
-  }
-  return server(req, res); // proxy request
-}
+bootstrap();
