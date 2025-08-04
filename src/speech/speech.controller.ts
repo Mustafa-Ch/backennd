@@ -1,4 +1,3 @@
-
 import {
   Controller,
   Post,
@@ -9,6 +8,9 @@ import { FileInterceptor } from '@nestjs/platform-express';
 import { diskStorage } from 'multer';
 import { OpenAIService } from '../speech/speech.service';
 import { extname } from 'path';
+import * as os from 'os';
+import * as path from 'path';
+import * as fs from 'fs/promises';
 
 @Controller('audio')
 export class AudioController {
@@ -18,7 +20,7 @@ export class AudioController {
   @UseInterceptors(
     FileInterceptor('file', {
       storage: diskStorage({
-        destination: './uploads',
+        destination: path.join(os.tmpdir(), 'uploads'), // ✅ Use /tmp/uploads for write access
         filename: (_, file, callback) => {
           const uniqueSuffix =
             Date.now() + '-' + Math.round(Math.random() * 1e9);
@@ -32,6 +34,14 @@ export class AudioController {
   )
   async transcribe(@UploadedFile() file: Express.Multer.File) {
     const text = await this.openAIService.transcribeAudio(file.path);
+
+    // ✅ Optional: delete file after processing
+    try {
+      await fs.unlink(file.path);
+    } catch (error) {
+      console.error('Error deleting file:', error);
+    }
+
     return { transcription: text };
   }
 }
