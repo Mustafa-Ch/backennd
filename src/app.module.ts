@@ -1,4 +1,4 @@
-import { Module } from '@nestjs/common';
+import { Module, OnModuleInit } from '@nestjs/common';
 import { AppController } from './app.controller';
 import { AppService } from './app.service';
 import { TypeOrmModule } from '@nestjs/typeorm';
@@ -7,8 +7,9 @@ import { SettingsModule } from './settings/settings.module';
 import { PlansModule } from './plans/plans.module';
 import { ChatModule } from './chat/chat.module';
 import { GoogleCalendarModule } from './google-calendar/google-calendar.module';
-import { ConfigModule } from '@nestjs/config';
+import { ConfigModule, ConfigService } from '@nestjs/config';
 import { SpeechModule } from './speech/speech.module';
+import { getOpenAIClient } from '../utils/openai';
 
 
 @Module({
@@ -43,4 +44,10 @@ import { SpeechModule } from './speech/speech.module';
   controllers: [AppController],
   providers: [AppService],
 })
-export class AppModule {}
+export class AppModule implements OnModuleInit {
+  constructor(private configService: ConfigService) {}
+
+  onModuleInit() {
+    getOpenAIClient(this.configService); // init once during boot
+  }
+}
